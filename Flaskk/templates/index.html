@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Gestión de Usuarios - Flask & FastAPI</title>
+</head>
+<body>
+    <h1>Panel de Control de Usuarios</h1>
+
+    <div class="form-container">
+        <h3>Agregar Usuario</h3>
+        <form action="/agregar" method="POST">
+            <input type="text" name="id" placeholder="ID" required>
+            <input type="text" name="nombre" placeholder="Nombre" required>
+            <input type="number" name="edad" placeholder="Edad" required>
+            <button type="submit">Agregar a FastAPI</button>
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}<p style="color:red;">{{ message }}</p>{% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Edad</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.edad }}</td>
+                <td>
+                    <a href="/eliminar/{{ u.id }}" class="btn-del" onclick="return confirm('¿Eliminar?')">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
