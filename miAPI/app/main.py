@@ -1,8 +1,10 @@
 #Importaciones
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 from typing import Optional
 import asyncio
 from pydantic import BaseModel, Field
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 
 #Inicializaciones api
 app = FastAPI(
@@ -13,15 +15,30 @@ app = FastAPI(
 
 # BD ficticia
 usuarios=[
-    {"id":"1","nombre":"Roberto","edad":"20"},
-    {"id":"2","nombre":"Diego","edad":"19"},
-    {"id":"3","nombre":"Julian","edad":"20"},
+    {"id":1,"nombre":"Roberto","edad":"20"},
+    {"id":2,"nombre":"Diego","edad":"19"},
+    {"id":3,"nombre":"Julian","edad":"20"},
 ]
-
+#Modelo
 class crear_usuario(BaseModel):
     id:int = Field(..., gt=0, description="Identificador de usuario")
     nombre:str = Field(..., min_length=3, max_length=50, example="Juanita")
     edad:int = Field(..., ge=1,le=123, description="Edad del usuario va;ida entre 1 y 123")
+
+#Seguridad HTTP BASIC
+seguridad = HTTPBasic()
+
+def verificar_peticion(credenciales:HTTPBasicCredentials=Depends(seguridad)):
+    userAuth = secrets.compare_digest(credenciales.username, "ivanisay")
+    passAuth = secrets.compare_digest(credenciales.password, "123456")
+
+    if not (userAuth and passAuth):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales no autorizadas"
+        )
+    return credenciales.username
+
 
 #Endpoint
 @app.get("/", tags=["Inicio"])
@@ -98,12 +115,12 @@ async def actualizar_usuario(id: str, usuario_act: dict):
     )
 
 @app.delete("/v1/usuarios/{id}", tags=["CRUD HTTP"])
-async def eliminar_usuario(id: str):    
+async def eliminar_usuario(id: int, userAuth: str = Depends(verificar_peticion)):    
     for index, usuario in enumerate(usuarios):
         if usuario["id"] == id:           
             usuario_elim = usuarios.pop(index)           
             return {
-                "mensaje": "Usuario eliminado correctamente",
+                "mensaje": f"Usuario eliminado por {userAuth}",
                 "status": "200",
                 "usuario": usuario_elim
             }
