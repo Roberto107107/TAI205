@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: Examenn
+    container_name: ExamenSegundoParcial
     ports:
       - "5000:5000"
     volumes:
